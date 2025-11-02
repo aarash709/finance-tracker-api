@@ -1,0 +1,20 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Transaction {
+  description: String!
+  amount: Int!
+}
+
+type Query {
+  transactions: Transaction!
+  transaction: Transaction!
+  accounts: Transaction!
+  account: Transaction!
+}
+
+type Mutation {
+  createTransaction: Transaction!
+  createAccount: Transaction!
+}

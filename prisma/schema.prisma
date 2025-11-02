@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  // output        = "../generated/prisma"
+  // output        = "../prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      Int       @id @default(autoincrement())
+  // username                String
+  // password                String
+  // lastName String
+  first_name              String?
+  last_name               String?
+  phoneNumber             String?   @unique
+  phoneNumberVerifiedDate DateTime?
+  email                   String    @unique
+  emailVerifiedDate       DateTime?
+  role                    Role      @default(USER)
+
+  Account            Account[]
+  Transaction        Transaction[]
+  UserAuthentication UserAuthentication[]
+
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+}
+
+model UserAuthentication {
+  id                Int      @id @default(autoincrement())
+  userId            Int
+  user              User     @relation(fields: [userId], references: [id])
+  provider          Provider
+  // providerUserId    Int
+  password_hash     String?
+  accesstoken_token String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, provider])
+}
+
+enum Provider {
+  LOCAL
+  GOOGLE
+}
+
+model Account {
+  id Int @id @default(autoincrement())
+
+  name String // e.g., "Cash", "Credit Card", "Wallet"
+  type AccountType
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+}
+
+model Transaction {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @default(now())
+  amount      Decimal  @db.Decimal(10, 2) // Always positive
+  description String?
+
+  type     TransactionType
+  category TransactionCategory?
+
+  accountId Int
+  userId    Int
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+  @@index([accountId, date])
+}
+
+enum TransactionCategory {
+  // Incomes
+  SALARY
+  FREELANCE
+  INVESTMENTS
+
+  // Bills (for "how much to pay" queries: sum where category IN [...] && date >= now())
+  BANK_FEES
+  CITY_TAXES
+  MORTGAGE
+  GAS
+  ELECTRICITY
+  INTERNET
+
+  // Other expenses
+  FOOD
+  TRANSPORT
+  ENTERTAINMENT
+  OTHER
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum AccountType {
+  ASSET // Positive balance
+  LIABILITY // Negative balance (what you owe)
+}
+
+enum Role {
+  ADMIN
+  USER
+}
