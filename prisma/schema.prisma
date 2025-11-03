@@ -18,9 +18,7 @@ datasource db {
 
 model User {
   id                      Int       @id @default(autoincrement())
-  // username                String
-  // password                String
-  // lastName String
+  // display_name                String //first name + last name
   first_name              String?
   last_name               String?
   phoneNumber             String?   @unique
@@ -29,12 +27,13 @@ model User {
   emailVerifiedDate       DateTime?
   role                    Role      @default(USER)
 
-  Account            Account[]
-  Transaction        Transaction[]
-  UserAuthentication UserAuthentication[]
-
   createdAt DateTime @default(now())
   updateAt  DateTime @updatedAt
+
+  Account            Account[]
+  UserAuthentication UserAuthentication[]
+  Budget             Budget[]
+  Category           Category[]
 }
 
 model UserAuthentication {
@@ -58,18 +57,18 @@ enum Provider {
 }
 
 model Account {
-  id Int @id @default(autoincrement())
-
+  id   Int         @id @default(autoincrement())
   name String // e.g., "Cash", "Credit Card", "Wallet"
   type AccountType
 
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  transactions Transaction[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  userId Int
+
+  user                 User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions         Transaction[]
+  RecurringTransaction RecurringTransaction[]
 
   @@unique([userId, name])
 }
@@ -80,40 +79,71 @@ model Transaction {
   amount      Decimal  @db.Decimal(10, 2) // Always positive
   description String?
 
-  type     TransactionType
-  category TransactionCategory?
-
-  accountId Int
-  userId    Int
-  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  user      User    @relation(fields: [userId], references: [id])
+  type TransactionType
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([userId, date])
+  categoryId             String?
+  accountId              Int
+  recurringTransactionId String?
+
+  account              Account               @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  Category             Category?             @relation(fields: [categoryId], references: [id])
+  RecurringTransaction RecurringTransaction? @relation(fields: [recurringTransactionId], references: [id])
+
+  @@index([date])
   @@index([accountId, date])
 }
 
-enum TransactionCategory {
-  // Incomes
-  SALARY
-  FREELANCE
-  INVESTMENTS
+model RecurringTransaction {
+  id          String             @id @default(uuid())
+  amount      Float
+  description String?
+  frequency   RecurringFrequency
+  nextDate    DateTime
+  categoryId  String?
 
-  // Bills (for "how much to pay" queries: sum where category IN [...] && date >= now())
-  BANK_FEES
-  CITY_TAXES
-  MORTGAGE
-  GAS
-  ELECTRICITY
-  INTERNET
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Other expenses
-  FOOD
-  TRANSPORT
-  ENTERTAINMENT
-  OTHER
+  accountId Int
+  userId    Int // For ownership
+
+  account      Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  category     Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  transactions Transaction[] // One-to-many: Generates actual transactions
+}
+
+model Budget {
+  id        String       @id @default(uuid())
+  amount    Float
+  period    BudgetPeriod // NEW ENUM: e.g., MONTHLY, YEARLY
+  startDate DateTime
+  endDate   DateTime?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  userId     Int
+  categoryId String
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id        String        @id @default(uuid())
+  name      String
+  type      CategoryType?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transactions         Transaction[]
+  budgets              Budget[]
+  RecurringTransaction RecurringTransaction[]
 }
 
 enum TransactionType {
@@ -129,4 +159,25 @@ enum AccountType {
 enum Role {
   ADMIN
   USER
+}
+
+enum BudgetPeriod {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  ONCE
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
+}
+
+enum RecurringFrequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  YEARLY
 }
