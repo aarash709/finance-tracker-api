@@ -7,14 +7,15 @@ import {
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { DatabaseService } from '../database/database.service';
 import { Prisma } from '@prisma/client';
+import { CreateTransactionDto } from './dto/create-transaction.dto';
 
 @Injectable()
 export class TransactionService {
   constructor(private database: DatabaseService) { }
 
-  async createTransaction(createTransactionDto: Prisma.TransactionCreateInput) {
+  async createTransaction(createTransactionDto: CreateTransactionDto) {
     return this.database.transaction.create({
-      data: createTransactionDto,
+      data: createTransactionDto
     });
   }
 

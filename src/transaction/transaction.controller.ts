@@ -19,6 +19,8 @@ import { TransactionService } from './transaction.service';
 import { Prisma } from '@prisma/client';
 import { UserGuard } from './guards/UserGuard';
 import { PassportJwtGuard } from '../auth/guards/passport-jwt.guard';
+import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { UpdateTransactionDto } from './dto/update-transaction.dto';
 
 @Controller('transaction')
 @UseGuards(PassportJwtGuard)
@@ -49,7 +51,7 @@ export class TransactionController {
 
   @Post('new')
   async create(
-    @Body() createExpenseDto: Prisma.TransactionCreateInput,
+    @Body(ValidationPipe) createExpenseDto: CreateTransactionDto,
   ) {
     return this.transactionService.createTransaction(createExpenseDto);
   }
@@ -57,7 +59,7 @@ export class TransactionController {
   @Patch(':id')
   async updateTransaction(
     @Param('id', ParseIntPipe) id: string,
-    @Body() updateAccountDto: Prisma.TransactionUpdateInput,
+    @Body() updateAccountDto: UpdateTransactionDto,
     @Request() req,
   ) {
     return this.transactionService.updateTransaction(

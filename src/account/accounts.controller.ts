@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req, UseGuards, ValidationPipe } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { Prisma } from '@prisma/client';
 import { PassportJwtGuard } from '../auth/guards/passport-jwt.guard';
@@ -21,14 +21,14 @@ export class AccountsController {
     }
 
     @Post('new')
-    async create(@Body() createAccountDto: CreateAccountDto) {
+    async create(@Body(ValidationPipe) createAccountDto: CreateAccountDto) {
         return this.accountService.create(createAccountDto);
     }
 
     @Patch(':id')
     async updateAccount(
         @Param('id', ParseIntPipe) id: string,
-        @Body() updateAccountDto: UpdateAccountDto,
+        @Body(ValidationPipe) updateAccountDto: UpdateAccountDto,
         @Req() req,
     ) {
         return this.accountService.updateAccount(
