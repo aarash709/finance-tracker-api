@@ -24,8 +24,10 @@ Create a `.env` file at project root with the following:
 ```bash
 1. Install
    npm install
+2. Generate prisma
+   npx prisma generate
 
-2. Development (watch)
+3. Development (watch)
    npm run start:dev
 ```
 ## Notes
