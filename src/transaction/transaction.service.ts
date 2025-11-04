@@ -7,7 +7,6 @@ import {
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { DatabaseService } from '../database/database.service';
 import { Prisma } from '@prisma/client';
-import { create } from 'domain';
 
 @Injectable()
 export class TransactionService {
@@ -19,19 +18,6 @@ export class TransactionService {
     });
   }
 
-  async createAccount(createAccountDto: Prisma.AccountCreateInput) {
-    const existingAccount = await this.database.account.findFirst({
-      where: { name: createAccountDto.name },
-    });
-    if (existingAccount) {
-      throw new HttpException(
-        'An account is already exsist for this user!',
-        HttpStatus.CONFLICT,
-      );
-    }
-    return this.database.account.create({ data: createAccountDto });
-  }
-
   async findAll(user: { id: number; email: string }) {
     const existingUser = await this.database.user.findFirst({
       where: { id: user.id, email: user.email },
@@ -39,53 +25,12 @@ export class TransactionService {
     if (!existingUser) {
       throw new UnauthorizedException();
     }
-    return this.database.transaction.findMany({
-      where: { userId: existingUser.id },
-      include: {
-        account: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
-  }
-  async findAllAcounts(userId: number) {
-    const user = await this.database.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      throw new UnauthorizedException();
-    }
-    const accounts = await this.database.account.findMany({
-      where: { userId: userId },
-      include: {
-        transactions: {
-          where: {
-            userId,
-          },
-          select: {
-            amount: true,
-            type: true,
-          },
-        },
-      },
-    });
-    const accountBalance = await accounts.map((account) => {
-      const income = account.transactions
-        .filter((t) => t.type === 'INCOME')
-        .reduce((sum, t) => sum + Number(t.amount), 0);
-      const expense = account.transactions
-        .filter((t) => t.type === 'EXPENSE')
-        .reduce((sum, t) => sum + Number(t.amount), 0);
-      const balance = income - expense;
-      return {
-        id: account.id,
-        name: account.name,
-        type: account.type,
-        balance,
-      };
-    });
-    return accountBalance;
+    const allTransactions = await this.database.account.findMany(
+      {
+        where: { userId: existingUser.id },
+        include: { transactions: true },
+      });
+    return allTransactions
   }
 
   async getFinantialSummary(
@@ -93,91 +38,49 @@ export class TransactionService {
     startDate?: string,
     endDate?: string,
   ) {
-    //work in progress
     const defaultStartDate = new Date();
     defaultStartDate.setDate(defaultStartDate.getDate() - 30);
+
     const dateFilter = {
       gte: startDate ? new Date(startDate) : defaultStartDate,
       lte: endDate ? new Date(endDate) : new Date(),
     };
-    const [income, expenses, billTotals, accounts] = await Promise.all([
+
+    const allAccounts = await this.database.account.findMany({
+      where: { userId },
+      select: { id: true, name: true, type: true },
+    });
+    const accountIds = allAccounts.map(account => account.id)
+    const [income, expenses] = await Promise.all([
       this.database.transaction.aggregate({
         where: {
-          type: "INCOME", userId: userId, date: dateFilter
+          type: "INCOME", accountId: { in: accountIds }, date: dateFilter
         },
         _sum: { amount: true },
       }),
       this.database.transaction.aggregate({
-        where: { type: "EXPENSE", userId: userId, date: dateFilter },
-        _sum: { amount: true },
-      }),
-      this.database.transaction.groupBy({
-        by: ['category'],
         where: {
-          date: dateFilter,
-          type: 'EXPENSE',
-          userId: userId,
-          category: {
-            in: [
-              'BANK_FEES',
-              'CITY_TAXES',
-              'ELECTRICITY',
-              'ENTERTAINMENT',
-              'FOOD',
-              'GAS',
-              'INTERNET',
-              'MORTGAGE',
-              'TRANSPORT',
-              'OTHER',
-            ],
-          },
+          type: "EXPENSE", accountId: { in: accountIds }, date: dateFilter
         },
         _sum: { amount: true },
-      }),
-      this.database.account.findMany({
-        where: { userId },
-        include: {
-          transactions: {
-            where: {
-              userId,
-            },
-            select: {
-              amount: true,
-              type: true,
-            },
-          },
-        },
       }),
     ]);
-    const accountBalances = accounts.map((account) => {
-      const incomeSum = 
-      account.transactions
-        .filter((t) => t.type === 'INCOME')
-        .reduce((sum, t) => sum + Number(t.amount), 0);
-      const expenseSum = account.transactions
-        .filter((t) => t.type === 'EXPENSE')
-        .reduce((sum, t) => sum + Number(t.amount), 0);
-      return {
-        accountId: account.id,
-        accountName: account.name,
-        balance: incomeSum - expenseSum,
-      };
+
+    const allTimeTotals = await this.database.transaction.groupBy({
+      by: ['accountId', 'type'],
+      where: { accountId: { in: accountIds } }, // 👈 FILTER BY ACCOUNT ID
+      _sum: { amount: true },
     });
-    const totalBalance = accountBalances.reduce(
-      (sum, account) => sum + account.balance,
-      0,
-    );
+
+    const totalIncome = Number(income._sum.amount) || 0;
+    const totalExpenses = Number(expenses._sum.amount) || 0;
     return {
-      totalBalance,
-      totalIncome: Number(income._sum.amount) || 0,
-      totalExpenses: Number(expenses._sum.amount) || 0,
+      // totalBalance,
+      totalIncome: totalIncome,
+      totalExpenses: totalExpenses,
       savings:
-        (Number(income._sum.amount) || 0) - (Number(expenses._sum.amount) || 0),
-      billTotals: billTotals.map((b) => ({
-        category: b.category,
-        total: Number(b._sum.amount) || 0,
-      })),
-      accountBalances,
+        totalIncome - totalExpenses,
+      // accountBalances,
     };
   }
 
@@ -189,16 +92,6 @@ export class TransactionService {
     });
   }
 
-  async updateAccount(
-    accountId: number,
-    userId: number,
-    updateAccountDto: Prisma.AccountUpdateInput,
-  ) {
-    return this.database.account.update({
-      where: { id: accountId, userId: userId },
-      data: updateAccountDto,
-    });
-  }
 
   async updateTransaction(
     id: number,
@@ -206,25 +99,17 @@ export class TransactionService {
     updateTransactionDto: UpdateTransactionDto,
   ) {
     return this.database.transaction.update({
-      where: { id, userId: userId },
+      where: { id },
       data: updateTransactionDto,
     });
   }
 
-  async removeTransaction(id: number, userId: number) {
+  async removeTransaction(id: number) {
     return this.database.transaction.delete({
       where: {
-        id,
-        userId: userId,
+        id
       },
     });
   }
-  async removeAccount(id: number, userId: number) {
-    return this.database.account.delete({
-      where: {
-        id,
-        userId: userId,
-      },
-    });
-  }
+
 }

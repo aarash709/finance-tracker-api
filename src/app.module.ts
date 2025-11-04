@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { CaslModule } from './casl/casl.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { ConfigModule } from '@nestjs/config';
+import { AccountModule } from './account/account.module';
+import { AccountsController } from './account/accounts.controller';
 
 @Module({
   imports: [
@@ -23,6 +25,7 @@ import { ConfigModule } from '@nestjs/config';
       // ignoreEnvFile: boolean,
       // ignoreEnvVars: boolean,
     }),
+    AccountModule,
   ],
   controllers: [AppController],
   providers: [AppService],

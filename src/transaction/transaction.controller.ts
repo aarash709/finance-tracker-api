@@ -23,29 +23,11 @@ import { PassportJwtGuard } from '../auth/guards/passport-jwt.guard';
 @Controller('transaction')
 @UseGuards(PassportJwtGuard)
 export class TransactionController {
-  constructor(private readonly transactionService: TransactionService) {}
+  constructor(private readonly transactionService: TransactionService) { }
 
-  @Post('new')
-  async createTransaction(
-    @Body() createExpenseDto: Prisma.TransactionCreateInput,
-  ) {
-    return this.transactionService.createTransaction(createExpenseDto);
-  }
-
-  @Post('account')
-  async createAccount(@Body() createAccountDto: Prisma.AccountCreateInput) {
-    return this.transactionService.createAccount(createAccountDto);
-  }
-
-  @Get('transactions')
-  async findAllTransactions(@Request() req) {
+  @Get('all')
+  async findAll(@Request() req) {
     return this.transactionService.findAll(req.user);
-  }
-
-  @Get('accounts')
-  async findAllAccounts(@Request() req) {
-    const userId = req.user.sub;
-    return this.transactionService.findAllAcounts(userId);
   }
 
   @Get('summary')
@@ -65,28 +47,11 @@ export class TransactionController {
     );
   }
 
-  @UseGuards(UserGuard)
-  @Get('account')
-  async findOneAccount(@Request() req) {
-    return this.transactionService.findAll(req.user.userId);
-  }
-
-  @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: string) {
-    return this.transactionService.findOne(+id);
-  }
-
-  @Patch('account/:id')
-  async updateAccount(
-    @Param('id', ParseIntPipe) id: string,
-    @Body() updateAccountDto: Prisma.AccountUpdateInput,
-    @Request() req,
+  @Post('new')
+  async create(
+    @Body() createExpenseDto: Prisma.TransactionCreateInput,
   ) {
-    return this.transactionService.updateAccount(
-      +id,
-      req.user.userId,
-      updateAccountDto,
-    );
+    return this.transactionService.createTransaction(createExpenseDto);
   }
 
   @Patch(':id')
@@ -107,11 +72,7 @@ export class TransactionController {
     @Param('id', ParseIntPipe) id: number,
     @Request() req,
   ) {
-    return this.transactionService.removeTransaction(+id, req.user.userId);
+    return this.transactionService.removeTransaction(+id);
   }
 
-  @Delete('account/:id')
-  async removeAccount(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    return this.transactionService.removeAccount(+id, req.user.userId);
-  }
 }
