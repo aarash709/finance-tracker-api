@@ -11,6 +11,7 @@ Minimal NestJS API for finance tracking and planning.
 
 ## Environment
 Create a `.env` file at project root with the following:
+- JWT_SECRET=your_jwt_secret
 - SESSION_SECRET=your_session_secret
 - CLIENT_ORIGIN=http://localhost:3000
 - PORT=4000
