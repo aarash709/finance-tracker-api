@@ -2,6 +2,8 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req, U
 import { AccountService } from './account.service';
 import { Prisma } from '@prisma/client';
 import { PassportJwtGuard } from '../auth/guards/passport-jwt.guard';
+import { CreateAccountDto } from './dto/AccountDto';
+import { UpdateAccountDto } from './dto/UpdateAccountDto';
 
 @Controller('account')
 @UseGuards(PassportJwtGuard)
@@ -19,14 +21,14 @@ export class AccountsController {
     }
 
     @Post('new')
-    async create(@Body() createAccountDto: Prisma.AccountCreateInput) {
+    async create(@Body() createAccountDto: CreateAccountDto) {
         return this.accountService.create(createAccountDto);
     }
 
     @Patch(':id')
     async updateAccount(
         @Param('id', ParseIntPipe) id: string,
-        @Body() updateAccountDto: Prisma.AccountUpdateInput,
+        @Body() updateAccountDto: UpdateAccountDto,
         @Req() req,
     ) {
         return this.accountService.updateAccount(

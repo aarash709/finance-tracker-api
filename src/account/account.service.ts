@@ -1,6 +1,8 @@
 import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { Prisma } from '@prisma/client';
+import { CreateAccountDto } from './dto/AccountDto';
+import { UpdateAccountDto } from './dto/UpdateAccountDto';
 
 @Injectable()
 export class AccountService {
@@ -44,7 +46,7 @@ export class AccountService {
         return this.database.account.findUnique({ where: { id: accountId, userId: userid } });
     }
 
-    async create(createAccountDto: Prisma.AccountCreateInput) {
+    async create(createAccountDto: CreateAccountDto) {
         const existingAccount = await this.database.account.findFirst({
             where: { name: createAccountDto.name },
         });
@@ -54,13 +56,15 @@ export class AccountService {
                 HttpStatus.CONFLICT,
             );
         }
-        return this.database.account.create({ data: createAccountDto });
+        return this.database.account.create({
+            data: createAccountDto
+        });
     }
 
     async updateAccount(
         accountId: number,
         userId: number,
-        updateAccountDto: Prisma.AccountUpdateInput,
+        updateAccountDto: UpdateAccountDto,
     ) {
         return this.database.account.update({
             where: { id: accountId, userId: userId },

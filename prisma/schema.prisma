@@ -152,8 +152,23 @@ enum TransactionType {
 }
 
 enum AccountType {
-  ASSET // Positive balance
-  LIABILITY // Negative balance (what you owe)
+  // Primary Liquid Accounts
+  CHECKING
+  SAVINGS
+
+  // Debt/Liability Accounts
+  CREDIT_CARD
+  LOAN // Includes personal loans, mortgages, student loans, etc.
+
+  // Investment/Asset Accounts
+  INVESTMENT // Brokerage, 401k, IRA, general stock/crypto portfolios
+  ASSET // Non-liquid assets like real estate, vehicles, or high-value collectibles
+
+  // Physical/Non-Bank Accounts
+  CASH // Physical cash held by the user
+
+  // General Catch-all
+  OTHER // For miscellaneous accounts (e.g., gift cards, PayPal balance, prepaid cards)
 }
 
 enum Role {
