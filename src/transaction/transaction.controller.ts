@@ -13,11 +13,8 @@ import {
   Query,
   BadRequestException,
   ParseDatePipe,
-  DefaultValuePipe,
 } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
-import { Prisma } from '@prisma/client';
-import { UserGuard } from './guards/UserGuard';
 import { PassportJwtGuard } from '../auth/guards/passport-jwt.guard';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';

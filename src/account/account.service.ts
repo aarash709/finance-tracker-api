@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { Prisma } from '@prisma/client';
 import { CreateAccountDto } from './dto/AccountDto';
 import { UpdateAccountDto } from './dto/UpdateAccountDto';
 

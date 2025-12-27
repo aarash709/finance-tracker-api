@@ -3,9 +3,9 @@ import { Field, InputType, Int, ObjectType } from "@nestjs/graphql";
 @ObjectType()
 export class Transaction {
     @Field()
-    description: string
+    description!: string
     @Field(() => Int)
-    amount: number
+    amount!: number
 
 
 }
@@ -13,7 +13,7 @@ export class Transaction {
 @InputType()
 export class CreatTransaction {
     @Field()
-    description: string
+    description!: string
 
     
 }

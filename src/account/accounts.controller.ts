@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req, UseGuards, ValidationPipe } from '@nestjs/common';
 import { AccountService } from './account.service';
-import { Prisma } from '@prisma/client';
 import { PassportJwtGuard } from '../auth/guards/passport-jwt.guard';
 import { CreateAccountDto } from './dto/AccountDto';
 import { UpdateAccountDto } from './dto/UpdateAccountDto';

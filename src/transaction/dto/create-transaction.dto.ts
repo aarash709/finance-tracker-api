@@ -19,20 +19,20 @@ export class CreateTransactionDto {
         message: 'The transaction type must be INCOME or EXPENSE.',
     })
     @IsNotEmpty()
-    type: TransactionType;
+    type!: TransactionType;
 
     @IsNumber()
     @IsNotEmpty()
-    amount: number;
+    amount!: number;
 
     @IsNotEmpty()
     @IsDate()
     @Type(() => Date)
-    date: Date;
+    date!: Date;
 
     @IsNumber()
     @IsNotEmpty()
-    accountId: number;
+    accountId!: number;
 
     @IsOptional()
     @IsString()

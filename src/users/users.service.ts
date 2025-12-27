@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Role } from '../auth/enumes';
 import { DatabaseService } from '../database/database.service';
-import { Prisma } from '@prisma/client';
-import { create } from 'domain';
 
 export type User = { name: string; password: string; id: number; role: Role[] };
 
