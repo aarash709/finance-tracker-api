@@ -18,11 +18,13 @@ import { TransactionService } from './transaction.service';
 import { PassportJwtGuard } from '../auth/guards/passport-jwt.guard';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('transaction')
 @UseGuards(PassportJwtGuard)
 export class TransactionController {
-  constructor(private readonly transactionService: TransactionService) { }
+  constructor(private readonly transactionService: TransactionService) {}
 
   @Get('all')
   async findAll(@Request() req) {
@@ -47,9 +49,7 @@ export class TransactionController {
   }
 
   @Post('new')
-  async create(
-    @Body(ValidationPipe) createExpenseDto: CreateTransactionDto,
-  ) {
+  async create(@Body(ValidationPipe) createExpenseDto: CreateTransactionDto) {
     return this.transactionService.createTransaction(createExpenseDto);
   }
 
@@ -73,5 +73,4 @@ export class TransactionController {
   ) {
     return this.transactionService.removeTransaction(+id);
   }
-
 }

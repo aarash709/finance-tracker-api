@@ -15,6 +15,7 @@ function setupSwagger(app: INestApplication) {
     .setTitle('Finance tracker')
     .setDescription('Finance tracker and manager API')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const options: SwaggerCustomOptions = { useGlobalPrefix: true };
   const documentFactory = () => SwaggerModule.createDocument(app, config);

@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 
 @Controller('api')
 export class GoogleAuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Get('auth/google/login')
   @UseGuards(GoogleGuard)

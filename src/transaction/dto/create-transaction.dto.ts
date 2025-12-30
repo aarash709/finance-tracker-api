@@ -1,41 +1,54 @@
-import { IsDate, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsDate,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { Type } from 'class-transformer';
-
+import { ApiProperty } from '@nestjs/swagger';
 
 export enum TransactionType {
-    INCOME = 'INCOME',
-    EXPENSE = 'EXPENSE',
+  INCOME = 'INCOME',
+  EXPENSE = 'EXPENSE',
 }
 
-
 export class CreateTransactionDto {
-    @IsOptional()
-    @IsString()
-    description?: string;
+  @ApiProperty({ default: 'Example description' })
+  @IsOptional()
+  @IsString()
+  description?: string;
 
-    @IsString()
-    @IsNotEmpty()
-    @IsEnum(TransactionType, {
-        message: 'The transaction type must be INCOME or EXPENSE.',
-    })
-    @IsNotEmpty()
-    type!: TransactionType;
+  @ApiProperty({ enum: TransactionType })
+  @IsString()
+  @IsNotEmpty()
+  @IsEnum(TransactionType, {
+    message: 'The transaction type must be INCOME or EXPENSE.',
+  })
+  @IsNotEmpty()
+  type!: TransactionType;
 
-    @IsNumber()
-    @IsNotEmpty()
-    amount!: number;
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  amount!: number;
 
-    @IsNotEmpty()
-    @IsDate()
-    @Type(() => Date)
-    date!: Date;
+  @ApiProperty({ type: Date, default: new Date() })
+  @IsNotEmpty()
+  @IsDate()
+  @Type(() => Date)
+  date!: Date;
 
-    @IsNumber()
-    @IsNotEmpty()
-    accountId!: number;
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  accountId!: number;
 
-    @IsOptional()
-    @IsString()
-    @IsUUID()
-    categoryId?: string;
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  categoryId?: string;
 }
